@@ -12,21 +12,10 @@
     margin-left: auto;
     margin-right: auto;
   }
-  h2 {
-    text-align: center;
-  }
-  h1 {
-    font-size: 16px;
-    color: #333;
-    background-color: #DDD;
-    border-bottom: 1px #999 solid;
-    text-align: center;
-  }
   body {
     font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
   }
   </style>
-
 
   <script type="application/javascript">
     var canvas, ctx;
@@ -55,7 +44,6 @@
       normalize: function() { var d = this.length(); this.scale(1.0/d); }
     }
 
-  
     var poop = new Image();
     var watermelon = new Image();
     var eater = new Image();
@@ -82,7 +70,6 @@
     function myRangeP(value) {dig_poop = value/1}; //poop
     function myRangeAW(value) {reward_aw = value/1}; //poop
     function myRangeF(value) {reward_f = value/10}; //poop
-
 
     var num_inputs = 27; // 9 eyes, each sees 3 numbers (wall, green, red thing proximity)
     var num_actions = 5; // 5 possible angles agent can turn
@@ -176,7 +163,6 @@
       this.age = 0;
       this.cleanup_ = false;
     }
-    
 
     var World = function() {
       this.agents = [];
@@ -381,7 +367,6 @@
         }
       }
     }
-
     
     // Eye sensor has a maximum range and senses walls
     var Eye = function(angle) {
@@ -487,7 +472,6 @@
       }
     }
     
-
     var reward_graph = new cnnvis.Graph();
     function draw_stats() {
       var canvas = document.getElementById("vis_canvas");
@@ -574,27 +558,6 @@
       simspeed = 2;
     }
 
-    function savenet() {
-      var j = w.agents[0].brain.value_net.toJSON();
-      var t = JSON.stringify(j);
-      document.getElementById('tt').value = t;
-    }
-    
-    function loadnet() {
-      var t = document.getElementById('tt').value;
-      var j = JSON.parse(t);
-      w.agents[0].brain.value_net.fromJSON(j);
-      stoplearn(); // also stop learning
-      gonormal();
-    }
-    
-    function startlearn() {
-      w.agents[0].brain.learning = true;
-    }
-    function stoplearn() {
-      w.agents[0].brain.learning = false;
-    }
-    
     function reload() {
       w = new World();
       w.agents = [new Agent()]; // this should simply work. I think... ;\
@@ -613,7 +576,6 @@
     }
 
   </script>
-
  </head>
  <body onload="start();">
    <div id="wrap">
