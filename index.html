@@ -569,36 +569,6 @@
     
 
     var simspeed = 2;
-    function goveryfast() {
-      window.clearInterval(current_interval_id);
-      current_interval_id = setInterval(tick, 0);
-      skipdraw = true;
-      simspeed = 3;
-    }
-    function gofast() {
-      window.clearInterval(current_interval_id);
-      current_interval_id = setInterval(tick, 0);
-      skipdraw = false;
-      simspeed = 2;
-    }
-    function gonormal() {
-      window.clearInterval(current_interval_id);
-      current_interval_id = setInterval(tick, 30);
-      skipdraw = false;
-      simspeed = 1;
-    }
-    function goslow() {
-      window.clearInterval(current_interval_id);
-      current_interval_id = setInterval(tick, 200);
-      skipdraw = false;
-      simspeed = 0;
-    }
-    function superslow() {
-      window.clearInterval(current_interval_id);
-      current_interval_id = setInterval(tick, 800);
-      skipdraw = false;
-      simspeed = 0;
-    }
 
     function savenet() {
       var j = w.agents[0].brain.value_net.toJSON();
@@ -639,14 +609,8 @@
     }
 
   </script>
-
-  <style type="text/css">
-      canvas { border: 1px solid white; }
-    </style>
-
-
-
  </head>
+ 
  <body onload="start();">
    <div id="wrap">
    <h1>State Visualizations</h1>
@@ -662,11 +626,6 @@
    <div id="brain_info_div"></div>
    
    <h1>Controls</h1>
-  <button onclick="goveryfast()">Go very fast</button>
-   <button onclick="gofast()">Go fast</button>
-   <button onclick="gonormal()">Go normal speed</button>
-   <button onclick="goslow()">Go slow</button>
-  <button onclick="superslow()">Super Slow</button>  <br> 
    <button onclick="startlearn()">Start Learning</button>
    <button onclick="stoplearn()">Stop Learning</button>
     <br> <br>
