@@ -566,9 +566,13 @@
         draw_stats();
       }
     }
-    
 
-    var simspeed = 2;
+    function gofast() {
+      window.clearInterval(current_interval_id);
+      current_interval_id = setInterval(tick, 0);
+      skipdraw = false;
+      simspeed = 2;
+    }
 
     function savenet() {
       var j = w.agents[0].brain.value_net.toJSON();
@@ -609,62 +613,15 @@
     }
 
   </script>
+
  </head>
- 
  <body onload="start();">
    <div id="wrap">
-   <h1>State Visualizations</h1>
-   
-   <div>Average reward over time (this should go up as agent becomes better on average at collecting rewards)</div>
    <canvas id="vis_canvas" width="350" height="10"></canvas>
    <canvas id="graph_canvas" width="800" height="200"></canvas><br>
-
-   <div style="font-size:13px;">
-
-   </div>
    <canvas id="canvas" width="800" height="500"></canvas>
-   <div id="brain_info_div"></div>
-   
-   <h1>Controls</h1>
-   <button onclick="startlearn()">Start Learning</button>
-   <button onclick="stoplearn()">Stop Learning</button>
-    <br> <br>
-    <label for="yspeed">Watermelon</label>
-    <output name="Waterout" id="rangeoutW">5</output>
-    <input type="range" onchange="myRangeW(this.value)" id="rangeW" min="-20" max="20" oninput="rangeoutW.value = rangeW.value">
-
-    <label for="yspeed">Poop</label>
-    <output name="Grangeout" id="rangeoutP">-6</output>
-    <input type="range" onchange="myRangeP(this.value)" id="rangeP" min="-20" max="20" oninput="rangeoutP.value = rangeP.value">
-    <br>
-    <label for="yspeed">Avoid Wall Reward</label>
-    <output name="Avoidout" id="rangeoutAW">1</output>
-    <input type="range" onchange="myRangeAW(this.value)" id="rangeAW" min="-1" max="10" oninput="rangeoutAW.value = rangeAW.value">
-
-    <label for="yspeed">Forward Reward</label>
-    <output name="Forwardout" id="rangeoutF">1</output>
-    <input type="range" onchange="myRangeF(this.value)" id="rangeF" min="-10" max="10" oninput="rangeoutF.value = rangeF.value">
-
-  <br><br>
-    <label for="xspeed">X Food Speed</label>
-    <output name="Xrangeout" id="rangeoutX">0</output>
-    <input type="range" onchange="myRangeX(this.value)" id="rangeX" min="-100" max="100" oninput="rangeoutX.value = rangeX.value">
-
-    <label for="yspeed">Y Food Speed</label>
-    <output name="Yrangeout" id="rangeoutY">0</output>
-    <input type="range" onchange="myRangeY(this.value)" id="rangeY" min="-100" max="100" oninput="rangeoutY.value = rangeY.value">
-
-   <br><br>
-    <label for="yspeed">Epsilon parameter</label>
-    <output name="Erangeout" id="rangeoutE">5</output>
-    <input type="range" onchange="myRangeE(this.value)" id="rangeE" min="1" max="100"  oninput="rangeoutE.value = rangeE.value">
-
-    <label for="yspeed">Gamma parameter</label>
-    <output name="Grangeout" id="rangeoutG">70</output>
-    <input type="range" onchange="myRangeG(this.value)" id="rangeG" min="1" max="100" oninput="rangeoutG.value = rangeG.value">
-    <br>
-
-<br>
+   <div id="brain_info_div"></div>   
+  <br>
    <button onclick="reload()" style="width: 100px; height: 30px; margin-top: 5px;margin-bottom: 5px;">Reload Model</button>
       <textarea id="qspec" style="width:100%; height:100px;">
           var layer_defs = [];
