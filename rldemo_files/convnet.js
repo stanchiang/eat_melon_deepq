@@ -247,7 +247,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
 
   global.Vol = Vol;
 })(convnetjs);
-
 (function(global) {
   "use strict";
   var Vol = global.Vol; // convenience
@@ -355,8 +354,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
   global.FullyConnLayer = FullyConnLayer;
   
 })(convnetjs);
-
-
 (function(global) {
   "use strict";
   var Vol = global.Vol; // convenience
@@ -552,7 +549,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
   global.ReluLayer = ReluLayer;
 
 })(convnetjs);
-
 (function(global) {
   "use strict";
   var Vol = global.Vol; // convenience
@@ -579,12 +575,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
         for(var i=0;i<defs.length;i++) {
           var def = defs[i];
           
-          if(def.type==='softmax' || def.type==='svm') {
-            // add an fc layer here, there is no reason the user should
-            // have to worry about this and we almost always want to
-            new_defs.push({type:'fc', num_neurons: def.num_classes});
-          }
-
           if(def.type==='regression') {
             // add an fc layer here, there is no reason the user should
             // have to worry about this and we almost always want to
@@ -605,19 +595,8 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
 
           if(typeof def.activation !== 'undefined') {
             if(def.activation==='relu') { new_defs.push({type:'relu'}); }
-            else if (def.activation==='sigmoid') { new_defs.push({type:'sigmoid'}); }
-            else if (def.activation==='tanh') { new_defs.push({type:'tanh'}); }
-            else if (def.activation==='maxout') {
-              // create maxout activation, and pass along group size, if provided
-              var gs = def.group_size !== 'undefined' ? def.group_size : 2;
-              new_defs.push({type:'maxout', group_size:gs});
-            }
             else { console.log('ERROR unsupported activation ' + def.activation); }
           }
-          if(typeof def.drop_prob !== 'undefined' && def.type !== 'dropout') {
-            new_defs.push({type:'dropout', drop_prob: def.drop_prob});
-          }
-
         }
         return new_defs;
       }
@@ -683,20 +662,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
       }
       return response;
     },
-    getPrediction: function() {
-      // this is a convenience function for returning the argmax
-      // prediction, assuming the last layer of the net is a softmax
-      var S = this.layers[this.layers.length-1];
-      assert(S.layer_type === 'softmax', 'getPrediction function assumes softmax as last layer of the net!');
-
-      var p = S.out_act.w;
-      var maxv = p[0];
-      var maxi = 0;
-      for(var i=1;i<p.length;i++) {
-        if(p[i] > maxv) { maxv = p[i]; maxi = i;}
-      }
-      return maxi; // return index of the class with highest class probability
-    },
     toJSON: function() {
       var json = {};
       json.layers = [];
@@ -723,7 +688,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
   
   global.Net = Net;
 })(convnetjs);
-
 (function(global) {
   "use strict";
   var Vol = global.Vol; // convenience
@@ -768,22 +732,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
 
         var pglist = this.net.getParamsAndGrads();
 
-        // initialize lists for accumulators. Will only be done once on first iteration
-        if(this.gsum.length === 0 && (this.method !== 'sgd' || this.momentum > 0.0)) {
-          // only vanilla sgd doesnt need either lists
-          // momentum needs gsum
-          // adagrad needs gsum
-          // adadelta needs gsum and xsum
-          for(var i=0;i<pglist.length;i++) {
-            this.gsum.push(global.zeros(pglist[i].params.length));
-            if(this.method === 'adadelta') {
-              this.xsum.push(global.zeros(pglist[i].params.length));
-            } else {
-              this.xsum.push([]); // conserve memory
-            }
-          }
-        }
-
         // perform an update for all sets of weights
         for(var i=0;i<pglist.length;i++) {
           var pg = pglist[i]; // param, gradient, other options in future (custom learning rate etc)
@@ -807,40 +755,16 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
 
             var gsumi = this.gsum[i];
             var xsumi = this.xsum[i];
-            if(this.method === 'adagrad') {
-              // adagrad update
-              gsumi[j] = gsumi[j] + gij * gij;
-              var dx = - this.learning_rate / Math.sqrt(gsumi[j] + this.eps) * gij;
-              p[j] += dx;
-            } else if(this.method === 'windowgrad') {
-              // this is adagrad but with a moving window weighted average
-              // so the gradient is not accumulated over the entire history of the run. 
-              // it's also referred to as Idea #1 in Zeiler paper on Adadelta. Seems reasonable to me!
-              gsumi[j] = this.ro * gsumi[j] + (1-this.ro) * gij * gij;
-              var dx = - this.learning_rate / Math.sqrt(gsumi[j] + this.eps) * gij; // eps added for better conditioning
-              p[j] += dx;
-            } else if(this.method === 'adadelta') {
-              // assume adadelta if not sgd or adagrad
-              gsumi[j] = this.ro * gsumi[j] + (1-this.ro) * gij * gij;
-              var dx = - Math.sqrt((xsumi[j] + this.eps)/(gsumi[j] + this.eps)) * gij;
-              xsumi[j] = this.ro * xsumi[j] + (1-this.ro) * dx * dx; // yes, xsum lags behind gsum by 1.
-              p[j] += dx;
-            } else if(this.method === 'nesterov') {
-            	var dx = gsumi[j];
-            	gsumi[j] = gsumi[j] * this.momentum + this.learning_rate * gij;
-                dx = this.momentum * dx - (1.0 + this.momentum) * gsumi[j];
-                p[j] += dx;
+            
+            // assume SGD
+            if(this.momentum > 0.0) {
+              // momentum update
+              var dx = this.momentum * gsumi[j] - this.learning_rate * gij; // step
+              gsumi[j] = dx; // back this up for next iteration of momentum
+              p[j] += dx; // apply corrected gradient
             } else {
-              // assume SGD
-              if(this.momentum > 0.0) {
-                // momentum update
-                var dx = this.momentum * gsumi[j] - this.learning_rate * gij; // step
-                gsumi[j] = dx; // back this up for next iteration of momentum
-                p[j] += dx; // apply corrected gradient
-              } else {
-                // vanilla sgd
-                p[j] +=  - this.learning_rate * gij;
-              }
+              // vanilla sgd
+              p[j] +=  - this.learning_rate * gij;
             }
             g[j] = 0.0; // zero out gradient so that we can begin accumulating anew
           }
@@ -861,7 +785,6 @@ var convnetjs = convnetjs || { REVISION: 'ALPHA' };
   global.Trainer = Trainer;
   global.SGDTrainer = Trainer; // backwards compatibility
 })(convnetjs);
-
 (function(lib) {
   "use strict";
   if (typeof module === "undefined" || typeof module.exports === "undefined") {
